@@ -1,1 +1,1 @@
-# Project2-College-Intern
+# College-Intern
