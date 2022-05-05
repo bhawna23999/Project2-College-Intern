@@ -53,36 +53,44 @@ const colleges = async function(req,res){
 }
 
 
-const collegeDetails = async (req, res) => {
-    try {
-        const collegeName = req.query.collegeName
-        if(!collegeName){
-            res.status(400).send({ status: false, message: 'Enter college name for filteration' })
-            return
+const collegeDetails = async function(req,res){
+    try 
+    {
+        let collegeName = req.query.collegeName
+        if(!collegeName)
+        return res.status(400).send({status:false, msg:"Plese write college Name"})
+
+        let getCollege = await collegeModel.findOne({name:collegeName})  
+        // console.log({...getCollege})   
+
+        if(!getCollege)
+        return res.status(404).send({status:false, msg:"no college found"})
+    
+        if(getCollege.isDeleted)
+        return res.status(400).send({status:false, message:"this College is deleted"})
+  
+        let Interests = await internModel.find({collegeId:getCollege, isDeleted:false}).select({_id:1, name:1, email:1, mobile:1})
+
+        let College = await collegeModel.findOne({name:collegeName}).select({name:1, fullName:1, logoLink:1, _id:0})
+        // console.log({...college})
+
+        College = College.toObject()
+        // console.log({...College})
+
+        if(Array.isArray(Interests) && Interests.length === 0){
+            College.Interest = "There is no intern at this college"
         }
-
-        let colleges = await collegeModel.findOne({isDeleted: false, name: collegeName})
-        const {name, fullName, logoLink} = colleges
-
-        if (!colleges) {
-            res.status(404).send({ status: false, message: 'No colleges found' })
-            return
+        else{ 
+            College.Interest = Interests  
         }
+    
+        res.status(200).send({status:true, data:College})
 
-        const interns = await internModel.find({isDeleted: false, collegeId: colleges._id}, {name: 1, email: 1, mobile: 1})
-
-        if(!isValidRequestBody(interns)){
-            res.status(404).send({ status: false, message: 'No interns found' })
-            return
-        }
-        
-        colleges = await collegeModel.findOne({name: collegeName}, {name: 1, fullName: 1, logoLink: 1, interests: 1, _id: 0})
-
-        collegeDetails = {name, fullName, logoLink, interests: interns}
-
-        res.status(200).send({ status: true, message: 'Colleges List', data: collegeDetails })
-    } catch (err) {
-        res.status(500).send({ status: false, message: err.message })
     }
+    catch(err)
+    {
+        console.log(err.message)
+        res.status(500).send({status:false,Error:err.message})
+    }   
 }
 module.exports = {colleges,collegeDetails}
