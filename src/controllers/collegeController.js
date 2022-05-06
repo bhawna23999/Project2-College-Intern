@@ -69,7 +69,7 @@ const collegeDetails = async function(req,res){
         if(getCollege.isDeleted)
         return res.status(400).send({status:false, message:"this College is deleted"})
   
-        let Interests = await internModel.find({collegeId:getCollege, isDeleted:false}).select({_id:1, name:1, email:1, mobile:1})
+        let interests = await internModel.find({collegeId:getCollege, isDeleted:false}).select({_id:1, name:1, email:1, mobile:1})
 
         let College = await collegeModel.findOne({name:collegeName}).select({name:1, fullName:1, logoLink:1, _id:0})
         // console.log({...college})
@@ -77,11 +77,11 @@ const collegeDetails = async function(req,res){
         College = College.toObject()
         // console.log({...College})
 
-        if(Array.isArray(Interests) && Interests.length === 0){
-            College.Interest = "There is no intern at this college"
+        if(Array.isArray(interests) && interests.length === 0){
+            College.interests = "There is no intern at this college"
         }
         else{ 
-            College.Interest = Interests  
+            College.interests = interests  
         }
     
         res.status(200).send({status:true, data:College})
